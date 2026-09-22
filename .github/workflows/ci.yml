@@ -1,0 +1,32 @@
+name: OpenCog CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-20.04
+    container:
+      image: opencog/opencog-dev:cli
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure CMake
+        run: |
+          mkdir -p build
+          cd build
+          cmake ..
+
+      - name: Build
+        run: |
+          cd build
+          make -j$(nproc)
+
+      - name: Run Tests
+        run: |
+          cd build
+          make test || ctest --output-on-failure

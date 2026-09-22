@@ -1,0 +1,35 @@
+services:
+  opencog:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: opencog/opencog:latest
+    container_name: opencog_server
+    ports:
+      - "17001:17001"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-opencog}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-opencog_secret}
+      - POSTGRES_DB=${POSTGRES_DB:-opencog}
+    volumes:
+      - .:/opencog
+    depends_on:
+      - postgres
+    command: /bin/sh -c "mkdir -p build && cd build && cmake .. && make -j$(nproc) && ./opencog/server/cogserver -c ../lib/opencog.conf"
+
+  postgres:
+    image: postgres:13-alpine
+    container_name: opencog_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-opencog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-opencog_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-opencog}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
